@@ -17,8 +17,8 @@ export default function Login() {
       console.log("success");
       navigateToDashBoard();
       let randomString = " ";
-      for (let i = 0; i < 8; i++) {
-        randomString += characters.charAt(Math.floor(Math.random() * 8));
+      for (let i = 0; i < 12; i++) {
+        randomString += characters.charAt(Math.floor(Math.random() * 12));
       }
       localStorage.setItem("access-token", randomString);
     }

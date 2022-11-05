@@ -22,6 +22,11 @@
   padding-left: 10px;
   padding-right: 10px;
 }
+figcaption {
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+}
 .task {
   display: flex;
   flex-direction: row;
@@ -33,14 +38,14 @@
   padding: 5px 20px 5px 20px;
   margin-bottom: 20px;
 }
-.deleteBtn {
+.Btns {
   background-color: white;
   border-color: white;
   width: 25px;
   height: 25px;
   margin-left: 40px;
 }
-.deleteBtn:hover {
+.Btns:hover {
   cursor: pointer;
 }
 .taskName {
@@ -71,6 +76,32 @@
   width: 35rem;
 }
 .logo img {
-  height: 150px;
-  width: 150px;
+  height: 200px;
+  width: 250px;
+}
+p {
+  color: goldenrod;
+  text-align: center;
+}
+.navigation {
+  background-color: goldenrod;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  /* margin: auto; */
+  width: fit-content;
+  border: 2px solid goldenrod;
+}
+.navigation:hover {
+  cursor: pointer;
+  background-color: #0f1525;
+  color: white;
+  border: 2px solid white;
+}
+.navSec {
+  display: flex;
+  justify-content: center;
+  gap: 80px;
 }

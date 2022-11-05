@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Class from "../styles/dashboard.module.css";
 import notesLogo from "../images/notesLogo.png";
+import prevArrow from "../images/left.png";
+import rightArrow from "../images/right.png";
 // Get items from Local Storage
 const getLocalItems = () => {
   let list = localStorage.getItem("items");
@@ -11,6 +13,7 @@ const getLocalItems = () => {
     return [];
   }
 };
+
 function Dashboard() {
   const navigate = useNavigate();
   const [inputData, setInputData] = useState({
@@ -19,14 +22,10 @@ function Dashboard() {
   });
   const [items, setItems] = useState(getLocalItems);
   const [toggleEdit, setToggleEdit] = useState(true);
-  const [isEditItem, setIsEditItem] = useState(null);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [taskPerPage, setTaskPerPage] = useState(10);
-  // const lastTaskIndex = currentPage * taskPerPage;
-  // const firstTaskIndex = lastTaskIndex - taskPerPage;
-  // const currList = items.slice(firstTaskIndex, lastTaskIndex);
+  const [editedItem, setEditedItem] = useState();
+
   const navigateToLogin = () => {
-    navigate("/login");
+    navigate("/");
   };
   //   Getting Access Token & Setting items to local storage
   useEffect(() => {
@@ -38,56 +37,75 @@ function Dashboard() {
       localStorage.setItem("items", JSON.stringify(items));
     }
   }, [items]);
-  //   add items
-  const addItem = () => {
-    if (!inputData) {
-    } else if (inputData && !toggleEdit) {
-      setItems(
-        items.map((elem, index) => {
-          if (index === isEditItem) {
-            return [...elem, [inputData.task, inputData.date]];
-          }
-          return elem;
-        })
+  //for pagination
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageItems, setPageItems] = useState(items);
+  useEffect(() => {
+    setPageItems(items.slice(0, 10));
+  }, []);
+  const nextPage = () => {
+    setPageItems(
+      items.slice((pageNumber + 1 - 1) * 10, (pageNumber + 1 - 1) * 10 + 10)
+    );
+    setPageNumber(pageNumber + 1);
+  };
+
+  const previousPage = () => {
+    if (pageNumber - 1 > 0) {
+      setPageItems(
+        items.slice((pageNumber - 1 - 1) * 10, (pageNumber - 1 - 1) * 10 + 10)
       );
-    } else {
-      setItems([...items, [inputData.task, inputData.date]]);
-      setInputData({
-        task: "",
-        date: "",
-      });
+      setPageNumber(pageNumber - 1);
     }
   };
+  const totalPages = () => {
+    var count = parseInt(items.length / 10);
+    if (items.length % 10 > 0) {
+      count = count + 1;
+    }
+    return count;
+  };
+  //   add items
+  const addItem = () => {
+    setItems([...items, [inputData.task, inputData.date]]);
+    setPageItems([...items, [inputData.task, inputData.date]]);
+    setInputData({
+      task: "",
+      date: "",
+    });
+  };
+
   const handleChange = (e) =>
     setInputData((prevData) => ({
       ...prevData,
       [e.target.name]: e.target.value,
     }));
-  // edit items
-  const editItem = (id) => {
-    let newEditItem = items.find((elem, index) => {
-      return index === isEditItem;
-    });
-    console.log("avi", newEditItem);
-    setToggleEdit(false);
+
+  const editItem = () => {
+    setItems([
+      ...items.filter((item) => item != editedItem),
+      (items[items.indexOf(editedItem)] = [inputData.task, inputData.date]),
+    ]);
+    setPageItems([
+      ...items.filter((item) => item != editedItem),
+      (items[items.indexOf(editedItem)] = [inputData.task, inputData.date]),
+    ]);
+    setToggleEdit(true);
     setInputData({
-      task: newEditItem[0],
-      date: newEditItem[1],
+      task: "",
+      date: "",
     });
-    setIsEditItem(isEditItem);
-    // var newList = items;
-    // console.log("avi2", inputData);
-    // newList[isEditItem] = [inputData.task, inputData.date];
-    // console.log("avi3", newList[isEditItem]);
-    // setItems(newList);
   };
+
   //   delete items
   const deleteItem = (id) => {
     const updatedItems = items.filter((elem, index) => {
       return index !== id;
     });
     setItems(updatedItems);
+    setPageItems([...items, [inputData.task, inputData.date]]);
   };
+
   return (
     <>
       <div className={Class.mainDiv}>
@@ -117,57 +135,78 @@ function Dashboard() {
                 Add Items
               </button>
             ) : (
-              <button onClick={addItem} className={Class.addBtn}>
+              <button onClick={editItem} className={Class.addBtn}>
                 Edit item
               </button>
             )}
           </div>
           <div className={Class.todos}>
-            {items.map((elem, index) => {
-              console.log("hi", elem);
-              if (elem) {
-                return (
-                  <div className={Class.task} key={index}>
-                    <div className={Class.taskName}>
-                      <span>
-                        {index + 1}.{" "}
-                        {/* {elem[0] != null || typeof elem[0] != undefined
-                          ? elem[0]
-                          : ""} */}{" "}
-                        {elem[0]}
-                      </span>
+            {items
+              .sort(
+                (a, b) =>
+                  Date.parse(new Date(a[1])) - Date.parse(new Date(b[1]))
+              )
+              ?.map((elem, index) => {
+                if (elem) {
+                  return (
+                    <div className={Class.task} key={index}>
+                      <div className={Class.taskName}>
+                        <span>
+                          {(pageNumber - 1) * 10 + index + 1}. {elem[0]}
+                        </span>
+                      </div>
+                      <div className={Class.taskDate}>
+                        <span>{elem[1]}</span>
+                        <img
+                          className={Class.Btns}
+                          src="https://cdn-icons-png.flaticon.com/512/1828/1828270.png"
+                          onClick={() => {
+                            setEditedItem(elem);
+                            setInputData({
+                              task: elem[0],
+                              date: elem[1],
+                            });
+                            setToggleEdit(false);
+                          }}
+                        ></img>
+                        <img
+                          onClick={() => deleteItem(index)}
+                          className={Class.Btns}
+                          src="https://cdn-icons-png.flaticon.com/512/3405/3405234.png"
+                        ></img>
+                      </div>
                     </div>
-                    <div className={Class.taskDate}>
-                      <span>
-                        {/* {elem[1] != null || typeof elem[1] != undefined
-                          ? elem[1]
-                          : ""} */}
-                        {elem[1]}
-                      </span>
-                      <button
-                        onClick={
-                          () => editItem(index)
-                          // setInputData({
-                          //   task: elem[0],
-                          //   date: elem[1],
-                          // });
-                          // setToggleEdit(false);
-                          // setIsEditItem(index);
-                        }
-                      ></button>
-                      <img
-                        onClick={() => deleteItem(index)}
-                        className={Class.deleteBtn}
-                        src="https://cdn-icons-png.flaticon.com/512/3405/3405234.png"
-                      ></img>
-                    </div>
-                  </div>
-                );
-              }
-            })}
+                  );
+                }
+              })}
           </div>
         </div>
       </div>
+      {items.length && (
+        <>
+          <p>
+            Page {pageNumber} out of {totalPages()}
+          </p>
+          <div className={Class.navSec}>
+            <button
+              className={Class.navigation}
+              onClick={previousPage}
+              disabled={pageNumber - 1 <= 0 ? true : false}
+            >
+              <img src={prevArrow}></img>
+              Previous
+            </button>
+            <button
+              className={Class.navigation}
+              onClick={nextPage}
+              disabled={totalPages() === pageNumber}
+            >
+              Next
+              <img src={rightArrow}></img>
+            </button>
+          </div>
+        </>
+      )}
     </>
   );
 }
